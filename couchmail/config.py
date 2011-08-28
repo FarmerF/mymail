@@ -14,10 +14,14 @@
 # along with Couchmail.  If not, see <http://www.gnu.org/licenses/>.
 # 
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
-"""This module provides configuration services."""
+"""This module provides configuration services.
+
+
+"""
+
 import ConfigParser
 import pyinotify
-import os.path
+import os, os.path
 
 manager = pyinotify.WatchManager()
 notifier = pyinotify.ThreadedNotifier(manager)
@@ -41,22 +45,19 @@ class Config (ConfigParser.SafeConfigParser):
 
     """
     
-    _instances = {}
-    _watchdirs = {}
+    _instance = None
 
     @classmethod
     def _config_file_changed (cls, event):
         """Event handler for pyinofity"""
-        try:
-            if event.pathname in cls._watchdirs[event.path]:
-                new_instance = Config(event.pathname)
-                # XXX: Need a lock here?
-                cls._instances[event.pathname] = new_instance
-        except KeyError as e:
-            pass
+        if cls._instance is None:
+            return
+        if event.pathname == cls._instance.configfile:
+            print "reload"
+            cls._instance = Config(cls._instance.configfile)
 
     @classmethod
-    def factory (cls, configfile):
+    def factory (cls, configfile=None):
         """Returns a config object for the requested file.
 
         If an instance of this file is already loaded that
@@ -66,27 +67,39 @@ class Config (ConfigParser.SafeConfigParser):
         process.
 
         """
+        if configfile is None:
+            configfile = os.getenv('COUCHMAIL_CONFIG', 'couchmail.conf')
         configfile = os.path.abspath(configfile)
-        if configfile not in cls._instances:
+
+        if not os.path.isfile(configfile):
+            configfile = None
+        
+        if cls._instance is None:
             try:
                 instance = Config(configfile)
-                instance.read(configfile)
+                if not configfile is None:
+                    instance.read(configfile)
             except Exception as e:
                 raise e
             except ConfigParser.Error as e:
                 raise e
             
-            cls._instances[configfile] = instance
-            enclosing_dir = os.path.abspath(os.path.dirname(configfile))
-            if not enclosing_dir in cls._watchdirs:
-                cls._watchdirs[enclosing_dir] = []
+            cls._instances = instance
+
+            if not configfile is None:
+                enclosing_dir = os.path.abspath(os.path.dirname(configfile))
                 manager.add_watch(enclosing_dir, pyinotify.IN_MODIFY,
                         proc_fun=cls._config_file_changed)
-            cls._watchdirs[enclosing_dir].append(configfile)
-        else:
-            instance = cls._instances[configfile]
-        return instance
+        return cls._instance
     
     def __init__ (self, configfile):
-        ConfigParser.ConfigParser.__init__(self)
+        ConfigParser.ConfigParser.__init__(self, {
+                'couchdb_host': 'localhost',
+                'couchdb_port': 5984,
+                'couchdb_users': 'users',
+                'couchdb_sessions': 'sessions',
+                'couchdb_logs': 'logs',
+                'logging_level': 3, # Error level
+                'logging_debug': False,
+            })
         self.configfile = configfile
