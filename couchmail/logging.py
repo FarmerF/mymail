@@ -92,24 +92,48 @@ def log (level, msg, info={}):
     log_db.save(doc) 
 
 def debug (msg, info={}):
-    """Shorthand for log()."""
+    """Record a debug message.
+
+    Debug messages are meant to aid in debugging problems. This
+    level should be turned off in production installations.
+
+    """
     log(Level.DEBUG, msg, info)
 
 def notice (msg, info={}):
-    """Shorthand for log()."""
+    """Record a notice.
+
+    Notices should be used to record non-error situations, they
+    should be used to obtain information about program flow.
+
+    """
     log(Level.NOTICE, msg, info)
 
 def warning (msg, info={}):
-    """Shorthand for log()."""
+    """Record a warning.
+
+    Warnings should be used in situations where somthing happens
+    that is not an error condition, but the user should try to avoid
+    the situation nonetheless.
+
+    """
     log(Level.WARNING, msg, info)
 
 def error (msg, info={}):
-    """Shorthand for log()."""
+    """Record an error message.
+
+    Error messages should be used when an error occurs that the program
+    can recover from.
+
+    """
     log(Level.ERROR, msg, info)
 
 def critical (msg, info={}):
-    """Shorthand for log()."""
+    """Record a critical error.
+
+    Critical errors should be used when to program encounters a problem
+    that forces it to abort immediatly, it is the program's own 
+    responsibility to exit.
+
+    """
     log(Level.CRITICAL, msg, info)
-
-
-
