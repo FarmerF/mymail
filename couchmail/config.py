@@ -106,6 +106,9 @@ class Config (object):
                 'couchdb_logs': 'logs',
                 'logging_level': 3, # Error level
                 'logging_debug': False,
+                'virtual_domains': ['localhost'],
+                'max_message_size': 25 * 1024 * 1024,
+                'archive_dir': '',
             }
         self.configfile = configfile
         self.values = None
