@@ -116,11 +116,11 @@ class Config (object):
         If the key is not found, a ValueError is raised.
         """
         if not key in self.defaults:
-            raise ValueError("Unknown key")
+            raise ValueError("Unknown key '%s'" % key)
         if self.values is None:
             self._read()
         return self.values[key]
-        
+
     def _read (self):
         if self.configfile is None:
             self.values = self.defaults
