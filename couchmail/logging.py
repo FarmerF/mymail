@@ -22,7 +22,7 @@ import time
 
 import couchmail.config
 
-__all__ = ['Level', 'set_level', 'set_source', 'log', 'debug',
+__all__ = ['Level', 'set_source', 'log', 'debug',
         'notice', 'warning', 'error']
 
 class Level (object):
@@ -35,7 +35,6 @@ class Level (object):
 str_level = ['stub', 'debug', 'notice', 'warning', 'error', 'critical']
 
 config = couchmail.config.Config.factory()
-log_level = config.get('logging_level') # use set_level !
 log_db = None
 source = 'unknown'
 
@@ -48,13 +47,6 @@ def set_source (new_source):
     """
     global source
     source = new_source
-
-def set_level (level):
-    """Set a new log level."""
-    global log_level
-    if level < 1 or level > 5:
-        raise ValueError("Debug level must be between 1 and 5 (inclusive)")
-    log_level = level
 
 def log (level, msg, info={}):
     """Enter a message into the log.
@@ -70,7 +62,7 @@ def log (level, msg, info={}):
     if config.get('logging_debug'):
         print "[%s] %s:  %s" % (str_level[level], time.asctime(), msg)
 
-    if level < log_level:
+    if level < config.get('logging_level'):
         return
 
     if log_db is None:

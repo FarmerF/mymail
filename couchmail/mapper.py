@@ -24,7 +24,7 @@ import couchdb.client as couch
 
 from couchmail.config import Config
 from couchmail.logging import (debug, notice, warning, error, 
-                               critical, set_source, set_level)
+                               critical, set_source)
 
 
 class MapHandler (SocketServer.BaseRequestHandler):
@@ -90,7 +90,6 @@ class MapHandler (SocketServer.BaseRequestHandler):
 def main ():
     config = Config.factory()
     set_source('mapper')
-    set_level(config.get('logging_level'))
     try:
         server = SocketServer.TCPServer(('localhost', 31337), MapHandler)
         server.serve_forever()
