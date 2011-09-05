@@ -1,5 +1,18 @@
 #!/usr/bin/env python
 
-from couchmail.mapper import main
+import sys
+import traceback
 
-main()
+from couchmail.mapper import main
+from couchmail.logging import notice, critical, set_source
+
+
+try:
+    notice("Mapper starting on port 31337")
+    set_source('mapper')
+    main()
+except Exception as e:
+    ex = sys.exc_info()
+    tb = traceback.format_exception(ex[0], ex[1], ex[2])
+    critical("Exception caught, traceback: '%s'" % ''.join(tb))
+    sys.exit(-1)

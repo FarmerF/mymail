@@ -15,7 +15,13 @@
 # 
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 
-"""Module docstring"""
+"""This module provides mapping facilities for Postfix.
+
+Postfix will query this service for alias and virtual hostname
+information using its tcp_table protocol (see man 5 tcp_table for
+more information).
+
+"""
 
 import SocketServer
 import sys
@@ -28,8 +34,15 @@ from couchmail.logging import (debug, notice, warning, error,
 
 
 class MapHandler (SocketServer.BaseRequestHandler):
+    
+    """Request handler for mapping requests."""
 
     def handle (self):
+        """Handles the actual request.
+
+        At most 4096 bytes will be read.
+        
+        """
         try:
             raw_data = self.request.recv(4096)
         except Exception as e:
@@ -45,6 +58,7 @@ class MapHandler (SocketServer.BaseRequestHandler):
 
         data = []
         i = 0
+        # Postfix encoding.   
         while i < len(parts[1]):
             if parts[1][i] == '%':
                 try:
@@ -65,7 +79,6 @@ class MapHandler (SocketServer.BaseRequestHandler):
 
         data = ''.join(data)
         
-        print data
         config = Config.factory()
 
         if data.find('@') < 0:
@@ -88,12 +101,5 @@ class MapHandler (SocketServer.BaseRequestHandler):
             print e
 
 def main ():
-    config = Config.factory()
-    set_source('mapper')
-    try:
-        server = SocketServer.TCPServer(('localhost', 31337), MapHandler)
-        server.serve_forever()
-    except Exception as e:
-        print e
-        critical("Caught exception '%s'" % e)
-        sys.exit(-1)
+    server = SocketServer.TCPServer(('localhost', 31337), MapHandler)
+    server.serve_forever()
