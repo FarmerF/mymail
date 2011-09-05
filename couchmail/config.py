@@ -134,6 +134,7 @@ class Config (object):
                     [x.strip() for x in fp.readlines()])
 
         self.values = self.defaults
+
         for line in lines:
             m = parse_re.match(line)
             if not m:
@@ -143,10 +144,23 @@ class Config (object):
             if not key in self.defaults:
                 raise ValueError("Invalid key '%s'" % key)
             t = type(self.defaults[key])
-            try:
-                _value = t(value)
-            except ValueError as e:
-                raise ValueError("Value of wrong type for key '%s'" % key)
+        
+            def _cast (to_type, val):
+                try:
+                    _val = to_type(val)
+                except ValueError as e:
+                    raise ValueError("Value of wrong type for key '%s'" % key)
+                return _val
+            
+            if t == list:
+                _t = type(self.defaults[key][0])
+                if not value[0] == '[' and value[-1] == ']':
+                    raise ValueError("Expected a list for key '%s'" % key)
+                
+                _value = [_cast(_t, x.strip()) 
+                        for x in value[1:-1].split(',')]
+            else:
+                _value = _cast(t, value)
             self.values[key] = _value
 
 
